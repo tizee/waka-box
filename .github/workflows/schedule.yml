@@ -1,14 +1,25 @@
 name: Update gist with WakaTime stats
+
+
 on:
+  push:
+    branches: master
   schedule:
-    - cron: "0 0 * * *"
+    - cron: "0 */3 * * *"
+
 jobs:
   update-gist:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@main
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v2.1.1
+        with:
+          node-version: '12.x'
+      - name: Install NPM
+        run: npm ci
       - name: Update gist
-        uses: tizee/waka-box@master
+        uses: node@12 ./index.js
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           GIST_ID: 956b8b6be48d14defd91c6515c4cae12
