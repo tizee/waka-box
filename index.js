@@ -1,6 +1,6 @@
 require("dotenv").config();
-const { WakaTimeClient, RANGE } = require("wakatime-client");
 const { Octokit } = require("@octokit/rest");
+const axios = require("axios").default;
 
 const {
   GIST_ID: gistId,
@@ -8,13 +8,20 @@ const {
   WAKATIME_API_KEY: wakatimeApiKey
 } = process.env;
 
-const wakatime = new WakaTimeClient(wakatimeApiKey);
+const config = axios.create({
+  baseURL: "https://wakatime.com/api/v1/",
+  // https://wakatime.com/developers#introduction
+  // use URL parameter
+  params: {
+    api_key: wakatimeApiKey
+  }
+});
 
 const octokit = new Octokit({ auth: `token ${githubToken}` });
 
 async function main() {
-  const stats = await wakatime.getMyStats({ range: RANGE.LAST_7_DAYS });
-  await updateGist(stats);
+  const res = await config.get("users/current/stats/last_7_days");
+  await updateGist(res.data);
 }
 
 async function updateGist(stats) {
@@ -54,6 +61,7 @@ async function updateGist(stats) {
         }
       }
     });
+    console.log("Update Successfully");
   } catch (error) {
     console.error(`Unable to update gist\n${error}`);
   }
